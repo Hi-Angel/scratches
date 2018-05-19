@@ -14,23 +14,36 @@ enum TokenTypes {
     Specials // non-alphanumeric, but specials, _, spaces, newlines.
 }
 
-struct TokenizeState {
-    vec: Vec<String>,
-    type_processed: TokenTypes
-}
-
-fn tokenize(text: String) -> Vec<String> {
-    let mut state = TokenizeState{ vec: Vec::new(), type_processed: TokenTypes::Uninitialized };
-    for char in text.chars() {
-        match state.type_processed {
-            TokenTypes::AlphaNumeric => {
-                if is_alphanumeric(char) {
-                    state.vec.last().push_str(&char);
-                } else // recursion?
+fn tokenize(ch: char, mut state: Vec<String>,
+            type_processed: TokenTypes) -> Vec<String> {
+    match type_processed {
+        TokenTypes::AlphaNumeric => {
+            if ch.is_alphanumeric() {
+                state.last_mut().unwrap().push(ch);
+                return state;
+            } else {
+                state.push(String::new()); // start a new token
+                return tokenize(ch, state, TokenTypes::Specials);
+            }
+        }
+        TokenTypes::Specials => {
+            if !ch.is_alphanumeric() {
+                state.last_mut().unwrap().push(ch);
+                return state;
+            } else {
+                state.push(String::new()); // start a new token
+                return tokenize(ch, state, TokenTypes::AlphaNumeric);
+            }
+        }
+        TokenTypes::Uninitialized => {
+            state.push(String::new()); // start a new token
+            if ch.is_alphanumeric() {
+                return tokenize(ch, state, TokenTypes::AlphaNumeric);
+            } else {
+                return tokenize(ch, state, TokenTypes::Specials);
             }
         }
     }
-    return state.vec;
 }
 
 fn main() {
