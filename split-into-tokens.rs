@@ -8,20 +8,29 @@ use std::fs::File;
 use std::io::prelude::*;
 
 enum TokenTypes {
+    // todo: do I really need to take into account newlines in tokens?
+    Uninitialized,
     AlphaNumeric, // alphanumeric, _
     Specials // non-alphanumeric, but specials, _, spaces, newlines.
 }
 
 struct TokenizeState {
-    ret: Vec<String>,
+    vec: Vec<String>,
     type_processed: TokenTypes
 }
 
 fn tokenize(text: String) -> Vec<String> {
-    let mut state = TokenizeState{ ret: Vec<String>::new(), };
+    let mut state = TokenizeState{ vec: Vec::new(), type_processed: TokenTypes::Uninitialized };
     for char in text.chars() {
+        match state.type_processed {
+            TokenTypes::AlphaNumeric => {
+                if is_alphanumeric(char) {
+                    state.vec.last().push_str(&char);
+                } else // recursion?
+            }
+        }
     }
-    return state.ret;
+    return state.vec;
 }
 
 fn main() {
