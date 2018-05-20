@@ -7,6 +7,7 @@ use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 
+#[derive(Debug)]
 enum TokenTypes {
     // todo: do I really need to take into account newlines in tokens?
     Uninitialized,
@@ -14,33 +15,38 @@ enum TokenTypes {
     Specials // non-alphanumeric, but specials, _, spaces, newlines.
 }
 
-fn tokenize(ch: char, mut state: Vec<String>,
-            type_processed: TokenTypes) -> Vec<String> {
-    match type_processed {
+#[derive(Debug)]
+struct TokenizeState {
+    vec: Vec<String>,
+    type_processed: TokenTypes
+}
+
+fn tokenize(mut state: TokenizeState, ch: char) -> TokenizeState {
+    match state.type_processed {
         TokenTypes::AlphaNumeric => {
             if ch.is_alphanumeric() {
-                state.last_mut().unwrap().push(ch);
+                state.vec.last_mut().unwrap().push(ch);
                 return state;
             } else {
-                state.push(String::new()); // start a new token
-                return tokenize(ch, state, TokenTypes::Specials);
+                state.vec.push(String::new()); // start a new token
+                return tokenize(TokenizeState{type_processed: TokenTypes::Specials, ..state}, ch);
             }
         }
         TokenTypes::Specials => {
             if !ch.is_alphanumeric() {
-                state.last_mut().unwrap().push(ch);
+                state.vec.last_mut().unwrap().push(ch);
                 return state;
             } else {
-                state.push(String::new()); // start a new token
-                return tokenize(ch, state, TokenTypes::AlphaNumeric);
+                state.vec.push(String::new()); // start a new token
+                return tokenize(TokenizeState{type_processed: TokenTypes::AlphaNumeric, ..state}, ch);
             }
         }
         TokenTypes::Uninitialized => {
-            state.push(String::new()); // start a new token
+            state.vec.push(String::new()); // start a new token
             if ch.is_alphanumeric() {
-                return tokenize(ch, state, TokenTypes::AlphaNumeric);
+                return tokenize(TokenizeState{type_processed: TokenTypes::AlphaNumeric, ..state}, ch);
             } else {
-                return tokenize(ch, state, TokenTypes::Specials);
+                return tokenize(TokenizeState{type_processed: TokenTypes::Specials, ..state}, ch);
             }
         }
     }
@@ -53,6 +59,10 @@ fn main() {
         println!("Opening a file {:?}", filename);
         let mut file = File::open(filename).expect("file error");
         file.read_to_string(&mut input_data).expect("Error reading a file");
-        print!("{}", input_data);
+        let state = input_data.chars().fold(TokenizeState{vec: Vec::new(), type_processed: TokenTypes::Uninitialized},
+                                            tokenize);
+        for token in state.vec {
+            println!("{}", token);
+        }
     }
 }
