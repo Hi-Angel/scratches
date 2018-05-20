@@ -24,7 +24,7 @@ struct TokenizeState {
 fn tokenize(mut state: TokenizeState, ch: char) -> TokenizeState {
     match state.type_processed {
         TokenTypes::AlphaNumeric => {
-            if ch.is_alphanumeric() {
+            if ch.is_alphanumeric() || ch == '_' {
                 state.vec.last_mut().unwrap().push(ch);
                 return state;
             } else {
