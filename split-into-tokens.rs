@@ -55,14 +55,14 @@ fn tokenize(mut state: TokenizeState, ch: char) -> TokenizeState {
 fn main() {
     println!("Please, enter filenames to read form");
     let mut input_data = String::new();
+    let mut state = TokenizeState{vec: Vec::new(), type_processed: TokenTypes::Uninitialized};
     for filename in env::args().skip(1) {
         println!("Opening a file {:?}", filename);
         let mut file = File::open(filename).expect("file error");
         file.read_to_string(&mut input_data).expect("Error reading a file");
-        let state = input_data.chars().fold(TokenizeState{vec: Vec::new(), type_processed: TokenTypes::Uninitialized},
-                                            tokenize);
-        for token in state.vec {
-            println!("{}", token);
-        }
+        state = input_data.chars().fold(state, tokenize);
+    }
+    for token in state.vec {
+        println!("{}", token);
     }
 }
