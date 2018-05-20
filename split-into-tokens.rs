@@ -1,6 +1,6 @@
 // 1. to hound the app into source code files ✓
 // 2. buld an array of tokens ✓
-// 3. collapse {tokens} → {tokens, frequency}, where each token appears once.
+// 3. collapse {tokens} → {tokens, frequency}, where each token appears once. ✓
 // ... profit! Actually, let's look at the results of 3-rd step before proceeding.
 
 use std::env;
@@ -68,7 +68,9 @@ fn main() {
         file.read_to_string(&mut input_data).expect("Error reading a file");
         state = input_data.chars().fold(state, tokenize);
     }
-    for (key, value) in state.tokens.iter() {
+    let mut sorted: Vec<(&String, &Freq)> = state.tokens.iter().collect();
+    sorted.sort_by(|a, b| b.1.cmp(a.1));
+    for &(key, value) in sorted.iter() {
         println!("{}: {}", key, value);
     }
 }
