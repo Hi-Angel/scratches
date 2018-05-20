@@ -71,6 +71,6 @@ fn main() {
     let mut sorted: Vec<(&String, &Freq)> = state.tokens.iter().collect();
     sorted.sort_by(|a, b| b.1.cmp(a.1));
     for &(key, value) in sorted.iter() {
-        println!("{}: {}", key, value);
+        println!("{:04}: {}", value, key);
     }
 }
