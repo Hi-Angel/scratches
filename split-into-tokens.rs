@@ -11,7 +11,7 @@ use std::collections::BTreeMap;
 #[derive(Debug)]
 enum TokenTypes {
     // todo: do I really need to take into account newlines in tokens?
-    Uninitialized,
+    SkipWhitespace, // a whitespace that does not belong to Specials. Can be used as initial state
     AlphaNumeric, // alphanumeric, _
     Specials // non-alphanumeric, but specials, _, spaces, newlines.
         //todo: add "Finished" to move last processee from processee
@@ -35,21 +35,27 @@ fn tokenize(mut state: TokenizeState, ch: char) -> TokenizeState {
             } else { // finish a token, start a new one
                 *state.tokens.entry(state.processee.clone()).or_insert(0) += 1;
                 state.processee = String::new();
-                return tokenize(TokenizeState{type_processed: TokenTypes::Specials, ..state}, ch);
+                return tokenize(TokenizeState{type_processed: if ch.is_whitespace() {TokenTypes::SkipWhitespace} else {TokenTypes::Specials},
+                                              ..state}, ch);
             }
         }
         TokenTypes::Specials => {
-            if !ch.is_alphanumeric() {
+            if !ch.is_alphanumeric() { // whitespace included
                 state.processee.push(ch);
                 return state;
             } else { // finish a token, start a new one
-                *state.tokens.entry(state.processee.clone()).or_insert(0) += 1;
+                let solid_token = state.processee.trim().to_string();
+                if solid_token.len() != 0 { // ignore whitespace-only tokens
+                    *state.tokens.entry(solid_token).or_insert(0) += 1;
+                }
                 state.processee = String::new();
                 return tokenize(TokenizeState{type_processed: TokenTypes::AlphaNumeric, ..state}, ch);
             }
         }
-        TokenTypes::Uninitialized => {
-            if ch.is_alphanumeric() {
+        TokenTypes::SkipWhitespace => {
+            if ch.is_whitespace() {
+                return state;
+            } if ch.is_alphanumeric() {
                 return tokenize(TokenizeState{type_processed: TokenTypes::AlphaNumeric, ..state}, ch);
             } else {
                 return tokenize(TokenizeState{type_processed: TokenTypes::Specials, ..state}, ch);
@@ -61,7 +67,7 @@ fn tokenize(mut state: TokenizeState, ch: char) -> TokenizeState {
 fn main() {
     println!("Please, enter filenames to read form");
     let mut input_data = String::new();
-    let mut state = TokenizeState{tokens: BTreeMap::new(), processee: String::new(), type_processed: TokenTypes::Uninitialized};
+    let mut state = TokenizeState{tokens: BTreeMap::new(), processee: String::new(), type_processed: TokenTypes::SkipWhitespace};
     for filename in env::args().skip(1) {
         println!("Opening a file {:?}", filename);
         let mut file = File::open(filename).expect("file error");
