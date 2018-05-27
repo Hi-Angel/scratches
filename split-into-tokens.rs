@@ -78,3 +78,25 @@ fn main() {
         println!("{:04}: {}", value, key);
     }
 }
+
+// getWindowNonKeywords :: Int -> Slice -> KeywordsPattern
+// getWindowNonKeywords winSz start = toIndices $ getNonKeyTokensAt winSz start
+//
+// getAllWindows :: Int -> Slice -> [KeywordsPattern]
+// getAllWindows winSz start = map (\start1 -> getWindowNonKeywords $ start + start1) [0-winSz..winSz]
+//
+//
+// completeAt at = do
+//   let keywordsPatterns = getAllWindows 8 at
+//       foo = getCompletionsProbabilitySortedByPattern keywordsPatterns
+//
+// -- let's make all possible windows (where distinct window determined by "keywords"
+// -- and repeating non-keywords). Then, to get completion we gonna check probable
+// -- windows. Typing a letter would sort probablities out.
+
+// -- 1. collect all tokens, and determine which ones "keywords"
+// -- 2. collect all possible windows, and enumerate non-keywords by index as per paper
+// -- 3. create a separate list of pattern-squashed windows through blanking non-keywords
+// -- 4. there I probably have to assign into every pattern-squashed window its
+// -- probability relative to patterns around, by I dunno yet what to do next. Let's see
+// -- what we get there
