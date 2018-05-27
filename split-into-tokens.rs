@@ -8,7 +8,6 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::collections::BTreeMap;
 
-#[derive(Debug)]
 enum TokenTypes {
     // todo: do I really need to take into account newlines in tokens?
     SkipWhitespace, // a whitespace that does not belong to Specials. Can be used as initial state
@@ -19,7 +18,6 @@ enum TokenTypes {
 
 type Freq = u32;
 
-#[derive(Debug)]
 struct TokenizeState {
     tokens: BTreeMap<String, Freq>,
     processee: String,
