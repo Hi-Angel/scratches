@@ -63,7 +63,9 @@ fn tokenize(mut state: TokenizeState, ch: char) -> TokenizeState {
 }
 
 fn main() {
-    println!("Please, enter filenames to read form");
+    if env::args().len() <= 1 {
+        println!("Please, enter filenames to read form");
+    }
     let mut input_data = String::new();
     let mut state = TokenizeState{tokens: BTreeMap::new(), processee: String::new(), type_processed: TokenTypes::SkipWhitespace};
     for filename in env::args().skip(1) {
