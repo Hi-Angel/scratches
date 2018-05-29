@@ -74,8 +74,8 @@ fn main() {
     }
     let mut sorted: Vec<(&String, &Freq)> = state.tokens.iter().collect();
     sorted.sort_by(|a, b| b.1.cmp(a.1));
-    for &(key, value) in sorted.iter() {
-        println!("{:04}: {}", value, key);
+    for &(key, freq) in sorted.iter() {
+        println!("{:04}: {}", (*freq) as f32 / (sorted.len()) as f32, key);
     }
 }
 
