@@ -8,6 +8,10 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::collections::BTreeMap;
 
+// arbitrary choosen lowest percentage for a word that we'd consider a keyword
+static KEYW_FREQ: i16 = 1;
+static WIN_SZ: i16 = 6;
+
 enum TokenTypes {
     // todo: do I really need to take into account newlines in tokens?
     SkipWhitespace, // a whitespace that does not belong to Specials. Can be used as initial state
@@ -82,10 +86,10 @@ fn main() {
 }
 
 // getWindowNonKeywords :: Int -> Slice -> KeywordsPattern
-// getWindowNonKeywords winSz start = toIndices $ getNonKeyTokensAt winSz start
+// getWindowNonKeywords start = toIndices $ getNonKeyTokensAt WIN_SZ start
 //
 // getAllWindows :: Int -> Slice -> [KeywordsPattern]
-// getAllWindows winSz start = map (\start1 -> getWindowNonKeywords $ start + start1) [0-winSz..winSz]
+// getAllWindows start = map (\start1 -> getWindowNonKeywords $ start + start1) [0-WIN_SZ..WIN_SZ]
 //
 //
 // completeAt at = do
