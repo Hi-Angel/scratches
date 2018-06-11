@@ -1,8 +1,3 @@
-// 1. to hound the app into source code files ✓
-// 2. buld an array of tokens ✓
-// 3. collapse {tokens} → {tokens, frequency}, where each token appears once. ✓
-// ... profit! Actually, let's look at the results of 3-rd step before proceeding.
-
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
