@@ -4,7 +4,7 @@ use std::io::prelude::*;
 use std::collections::BTreeMap;
 
 // arbitrary choosen lowest percentage for a word that we'd consider a keyword
-static KEYW_FREQ: i16 = 1;
+static KEYW_FREQ: f16 = 0.1;
 static WIN_SZ: i16 = 6;
 
 enum TokenTypes {
