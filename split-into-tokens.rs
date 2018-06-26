@@ -68,27 +68,23 @@ fn tokenize(mut state: TokenizeState, ch: char) -> TokenizeState {
 //     //         let refToken = getRef freqTable token
 // }
 
-//todo: 1. make (&String, &Freq) a struct, 2. get rid of mutable at tokenize() func — not because I really need, but to learn a bit rust internals.
-
 fn main() {
     if env::args().len() <= 1 {
         println!("Please, enter filenames to read form");
     }
-    let mut input_data = String::new();
     let mut state = TokenizeState{tokens: BTreeMap::new(), processee: String::new(), type_processed: TokenTypes::SkipWhitespace};
     for filename in env::args().skip(1) {
         println!("Opening a file {:?}", filename);
         let mut file = File::open(filename).expect("file error");
+        let mut input_data = String::new();
         file.read_to_string(&mut input_data).expect("Error reading a file");
         state = input_data.chars().fold(state, tokenize);
     }
     let mut sorted: Vec<(&String, &Freq)> = state.tokens.iter().collect();
-
     sorted.sort_by(|a, b| b.1.cmp(a.1));
     for &(key, freq) in sorted.iter() {
         println!("{:04}: {}", (*freq) as f32 / (sorted.len()) as f32, key);
     }
-
 }
 
 // getWindowNonKeywords :: Int -> Slice -> KeywordsPattern
