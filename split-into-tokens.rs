@@ -4,7 +4,7 @@ use std::io::prelude::*;
 use std::collections::BTreeMap;
 
 // arbitrary choosen lowest percentage for a word that we'd consider a keyword
-static KEYW_FREQ: f16 = 0.1;
+static KEYW_FREQ: f32 = 0.1;
 static WIN_SZ: i16 = 6;
 
 enum TokenTypes {
@@ -61,6 +61,15 @@ fn tokenize(mut state: TokenizeState, ch: char) -> TokenizeState {
     }
 }
 
+// fn collect_windows(text: &str, tokens: Vec<(&String, &Freq)>) -> Vec<Box<(&String, &Freq)>>{
+//     //some scratches:
+//     // for window in text:
+//     //     for token in window
+//     //         let refToken = getRef freqTable token
+// }
+
+//todo: 1. make (&String, &Freq) a struct, 2. get rid of mutable at tokenize() func — not because I really need, but to learn a bit rust internals.
+
 fn main() {
     if env::args().len() <= 1 {
         println!("Please, enter filenames to read form");
@@ -74,10 +83,12 @@ fn main() {
         state = input_data.chars().fold(state, tokenize);
     }
     let mut sorted: Vec<(&String, &Freq)> = state.tokens.iter().collect();
+
     sorted.sort_by(|a, b| b.1.cmp(a.1));
     for &(key, freq) in sorted.iter() {
         println!("{:04}: {}", (*freq) as f32 / (sorted.len()) as f32, key);
     }
+
 }
 
 // getWindowNonKeywords :: Int -> Slice -> KeywordsPattern
