@@ -15,10 +15,12 @@ enum TokenTypes {
         //todo: add "Finished" to move last processee from processee
 }
 
-type Freq = u32;
+type Freq   = u32;
+type Tokens = BTreeMap<String, Freq>;
+type Window = Vec<Box<>>;
 
 struct TokenizeState {
-    tokens: BTreeMap<String, Freq>,
+    tokens: Tokens,
     processee: String,
     type_processed: TokenTypes
 }
@@ -61,12 +63,14 @@ fn tokenize(mut state: TokenizeState, ch: char) -> TokenizeState {
     }
 }
 
-// fn collect_windows(text: &str, tokens: Vec<(&String, &Freq)>) -> Vec<Box<(&String, &Freq)>>{
-//     //some scratches:
-//     // for window in text:
-//     //     for token in window
-//     //         let refToken = getRef freqTable token
-// }
+fn collect_windows(text: &str, tokens: Tokens) -> Vec<Box<(&String, &Freq)>>{
+    //some scratches:
+    // for window in text:
+    //     for token in window
+    //         let refToken = getRef freqTable token
+}
+
+// todo: make type Window to refer a single pair of the map Tokens.
 
 fn main() {
     if env::args().len() <= 1 {
