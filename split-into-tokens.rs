@@ -1,7 +1,7 @@
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 // arbitrary choosen lowest percentage for a word that we'd consider a keyword
 static KEYW_FREQ: f32 = 0.1;
@@ -16,11 +16,12 @@ enum TokenTypes {
 }
 
 type Freq       = u32;
-type TokensInfo = BTreeMap<String, Freq>;
-type Window     = Vec<Box<>>;
+type Token      = String;
+type TokensInfo = HashMap<Token, Freq>;
 
 struct TokenizeState {
     tokens: TokensInfo,
+    // text: Tokens,
     processee: String,
     type_processed: TokenTypes
 }
@@ -63,12 +64,12 @@ fn tokenize(mut state: TokenizeState, ch: char) -> TokenizeState {
     }
 }
 
-fn collect_windows(text: &str, tokens: TokensInfo) -> Vec<Box<(&String, &Freq)>>{
-    // text is measured in tokens, so we gotta break text to array of tokens. Then:
-    // for window in text:
-    //     for token in window
-    //         let refToken = getRef freqTable token
-}
+// fn collect_windows(text: &str, tokens: TokensInfo) -> Vec<Box<(&String, &Freq)>>{
+//     // text is measured in tokens, so we gotta break text to array of tokens. Then:
+//     // for window in text:
+//     //     for token in window
+//     //         let refToken = getRef freqTable token
+// }
 
 // todo: make type Window to refer a single pair of the map TokensInfo.
 
@@ -76,7 +77,7 @@ fn main() {
     if env::args().len() <= 1 {
         println!("Please, enter filenames to read form");
     }
-    let mut state = TokenizeState{tokens: BTreeMap::new(), processee: String::new(), type_processed: TokenTypes::SkipWhitespace};
+    let mut state = TokenizeState{tokens: HashMap::new(), processee: String::new(), type_processed: TokenTypes::SkipWhitespace};
     for filename in env::args().skip(1) {
         println!("Opening a file {:?}", filename);
         let mut file = File::open(filename).expect("file error");
