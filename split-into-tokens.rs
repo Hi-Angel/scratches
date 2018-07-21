@@ -15,12 +15,12 @@ enum TokenTypes {
         //todo: add "Finished" to move last processee from processee
 }
 
-type Freq   = u32;
-type Tokens = BTreeMap<String, Freq>;
-type Window = Vec<Box<>>;
+type Freq       = u32;
+type TokensInfo = BTreeMap<String, Freq>;
+type Window     = Vec<Box<>>;
 
 struct TokenizeState {
-    tokens: Tokens,
+    tokens: TokensInfo,
     processee: String,
     type_processed: TokenTypes
 }
@@ -63,14 +63,14 @@ fn tokenize(mut state: TokenizeState, ch: char) -> TokenizeState {
     }
 }
 
-fn collect_windows(text: &str, tokens: Tokens) -> Vec<Box<(&String, &Freq)>>{
-    //some scratches:
+fn collect_windows(text: &str, tokens: TokensInfo) -> Vec<Box<(&String, &Freq)>>{
+    // text is measured in tokens, so we gotta break text to array of tokens. Then:
     // for window in text:
     //     for token in window
     //         let refToken = getRef freqTable token
 }
 
-// todo: make type Window to refer a single pair of the map Tokens.
+// todo: make type Window to refer a single pair of the map TokensInfo.
 
 fn main() {
     if env::args().len() <= 1 {
@@ -112,3 +112,4 @@ fn main() {
 // -- 4. there I probably have to assign into every pattern-squashed window its
 // -- probability relative to patterns around, by I dunno yet what to do next. Let's see
 // -- what we get there
+// todo: fuzzy window len. It could be worthwhile to store variants of windows of different len, and take the one with most freq.
