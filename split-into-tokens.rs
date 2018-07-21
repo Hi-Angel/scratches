@@ -21,7 +21,7 @@ type TokensInfo = HashMap<Token, Freq>;
 
 struct TokenizeState {
     tokens: TokensInfo,
-    // text: Tokens,
+    text: Vec<Token>,
     processee: String,
     type_processed: TokenTypes
 }
@@ -77,7 +77,8 @@ fn main() {
     if env::args().len() <= 1 {
         println!("Please, enter filenames to read form");
     }
-    let mut state = TokenizeState{tokens: HashMap::new(), processee: String::new(), type_processed: TokenTypes::SkipWhitespace};
+    let mut state = TokenizeState{tokens: HashMap::new(), text: Vec::new(),
+                                  processee: String::new(), type_processed: TokenTypes::SkipWhitespace};
     for filename in env::args().skip(1) {
         println!("Opening a file {:?}", filename);
         let mut file = File::open(filename).expect("file error");
