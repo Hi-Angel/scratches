@@ -34,8 +34,8 @@ fn tokenize(mut state: TokenizeState, ch: char) -> TokenizeState {
                 return state;
             } else { // finish a token, start a new one
                 *state.tokens.entry(state.processee.clone()).or_insert(0) += 1;
-                state.processee = String::new();
-                return tokenize(TokenizeState{type_processed: if ch.is_whitespace() {TokenTypes::SkipWhitespace} else {TokenTypes::Specials},
+                return tokenize(TokenizeState{processee: String::new(),
+                                              type_processed: if ch.is_whitespace() {TokenTypes::SkipWhitespace} else {TokenTypes::Specials},
                                               ..state}, ch);
             }
         }
@@ -48,8 +48,8 @@ fn tokenize(mut state: TokenizeState, ch: char) -> TokenizeState {
                 if solid_token.len() != 0 { // ignore whitespace-only tokens
                     *state.tokens.entry(solid_token).or_insert(0) += 1;
                 }
-                state.processee = String::new();
-                return tokenize(TokenizeState{type_processed: TokenTypes::AlphaNumeric, ..state}, ch);
+                return tokenize(TokenizeState{processee: String::new(),
+                                              type_processed: TokenTypes::AlphaNumeric, ..state}, ch);
             }
         }
         TokenTypes::SkipWhitespace => {
