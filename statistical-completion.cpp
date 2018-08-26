@@ -1,10 +1,13 @@
 #include <cassert>
+#include <fcntl.h>
+#include <unistd.h>
 #include <cstdio>
 #include <cctype>
 #include <cstdint>
 #include <functional>
 #include <string>
 #include <map>
+#include <set>
 #include <numeric>
 #include <variant>
 #include <vector>
@@ -104,12 +107,12 @@ TokenizeState tokenize(TokenizeState state, char ch) {
 }
 
 class File {
-    FILE* fd;
+    int fd;
 
     char* line_buf = 0;
     size_t sz_line_buf = 0;
 
-    File(FILE* fd, size_t sz_file) : fd(fd), sz_file(sz_file) {};
+    File(int fd, size_t sz_file) : fd(fd), sz_file(sz_file) {};
     File(const File&) = delete;
 
 public:
@@ -118,26 +121,25 @@ public:
 
     static
     Maybe<File> open(const char* filename) {
-        FILE* fd = fopen(filename, "r");
-        if (!fd) {
+        int fd = ::open(filename, O_RDONLY);
+        if (fd == -1) {
             perror("open");
             return monostate{};
         }
 
-        fseek(fd, 0L, SEEK_END);
-        size_t sz_file = ftell(fd);
-        fseek(fd, 0L, SEEK_SET);
+        off_t sz_file = lseek(fd, 0L, SEEK_END);
+        if (sz_file == -1) {
+            perror("lseek");
+            abort();
+        }
+        lseek(fd, 0L, SEEK_SET);
 
-        return Maybe<File>{File{fd, sz_file}};
-    }
-
-    const char* read_line() {
-        return (getline(&line_buf, &sz_line_buf, fd) == -1)? 0 : line_buf;
+        return Maybe<File>{File{fd, (size_t)sz_file}};
     }
 
     vector<char> to_vec() {
         vector<char> file_content(sz_file);
-        if (!fread(file_content.data(), 1, sz_file, fd)) {
+        if (read(fd, file_content.data(), sz_file) == -1) {
             perror("read");
             abort(); // no point in proceeding
         }
@@ -216,8 +218,20 @@ int main(int argc, char *argv[]) {
         if (holds_alternative<monostate>(mb_file))
             return -1;
 
-        state = accumulate(box2args(unbox_ref(mb_file).to_vec()),
+        vector<char> file_as_vec = unbox_ref(mb_file).to_vec();
+        state = accumulate(box2args(file_as_vec),
                            state,
                            tokenize);
     }
+
+    using sort_func_type = std::function<bool(const TokenFreqRef&,
+                                              const TokenFreqRef&)>;
+    sort_func_type sort_func = [](const TokenFreqRef& lhs, const TokenFreqRef& rhs) {
+            return lhs.get().second > rhs.get().second;
+        };
+    set<TokenFreqRef, sort_func_type> sorted(box2args(state.tokens), sort_func);
+    assert(sorted.size() == state.tokens.size());
+
+    for (TokenFreqRef x : sorted)
+        printf("%u: %s\n", x.get().second, x.get().first.c_str());
 }
