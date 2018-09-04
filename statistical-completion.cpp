@@ -201,6 +201,24 @@ T& unbox_ref(Maybe<T>& mb_t) {
 
 #define box2args(container) container.begin(), container.end()
 
+void print_state_tokens(TokenizeState state) {
+    vector<TokenFreqRef> sorted = accumulate(box2args(state.tokens),
+                                             vector<TokenFreqRef>{},
+                                             [](vector<TokenFreqRef> accum, TokenFreqRef arg) {
+                                                 for (uint i = accum.size();;--i) {
+                                                     if (!i || accum[i-1].get().second > arg.get().second) {
+                                                         accum.insert(accum.begin()+i, arg);
+                                                         break;
+                                                     }
+                                                 }
+                                                 return accum;
+                                             });
+    assert(sorted.size() == state.tokens.size());
+
+    for (TokenFreqRef x : sorted)
+        printf("%u: %s\n", x.get().second, x.get().first.c_str());
+}
+
 int main(int argc, char *argv[]) {
     if (argc <= 1) {
         puts("Please, enter filenames to read form");
@@ -224,14 +242,5 @@ int main(int argc, char *argv[]) {
                            tokenize);
     }
 
-    using sort_func_type = std::function<bool(const TokenFreqRef&,
-                                              const TokenFreqRef&)>;
-    sort_func_type sort_func = [](const TokenFreqRef& lhs, const TokenFreqRef& rhs) {
-            return lhs.get().second > rhs.get().second;
-        };
-    set<TokenFreqRef, sort_func_type> sorted(box2args(state.tokens), sort_func);
-    assert(sorted.size() == state.tokens.size());
-
-    for (TokenFreqRef x : sorted)
-        printf("%u: %s\n", x.get().second, x.get().first.c_str());
+    print_state_tokens(state);
 }
