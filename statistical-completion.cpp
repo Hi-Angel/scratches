@@ -12,6 +12,11 @@
 #include <variant>
 #include <vector>
 
+// most frequent words: arbitrary percentage, for prototyping purposes
+// a keyword: reference to one of "most frequent words"
+// window size: arbitrary number, for prototyping purposes
+// window: a window-size tuple, where elements are either keywords or 0-indexed non-keyword that may be repeated throughtout the window.
+
 using namespace std;
 
 using f32 = float;
