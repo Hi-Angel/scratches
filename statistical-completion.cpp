@@ -196,7 +196,7 @@ struct iterate<char> {
 };
 
 template<class T>
-T& unbox_ref(Maybe<T>& mb_t) {
+T& get_ref(Maybe<T>& mb_t) {
     T& ret = get<1>(mb_t);
     return ret;
 }
@@ -238,7 +238,7 @@ int main(int argc, char *argv[]) {
         if (holds_alternative<monostate>(mb_file))
             return -1;
 
-        vector<char> file_as_vec = unbox_ref(mb_file).to_vec();
+        vector<char> file_as_vec = get_ref(mb_file).to_vec();
         state = accumulate(box2args(file_as_vec),
                            state,
                            tokenize);
