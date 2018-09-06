@@ -12,11 +12,6 @@
 #include <variant>
 #include <vector>
 
-// most frequent words: arbitrary percentage, for prototyping purposes
-// a keyword: reference to one of "most frequent words"
-// window size: arbitrary number, for prototyping purposes
-// window: a window-size tuple, where elements are either keywords or 0-indexed non-keyword that may be repeated throughtout the window.
-
 using namespace std;
 
 using f32 = float;
@@ -24,17 +19,11 @@ using i32 = int32_t;
 using i16 = int16_t;
 using u32 = uint32_t;
 
-// arbitrary choosen lowest percentage for a word that we'd consider a keyword
-f32 KEYW_FREQ = 0.1;
-i16 WIN_SZ = 6;
-
-enum class TokenTypes {
-    // todo: do I really need to take into account newlines in tokens?
-    SkipWhitespace, // a whitespace that does not belong to Specials. Can be used as initial state
-    AlphaNumeric, // alphanumeric, _
-    Specials // non-alphanumeric, but specials, _, spaces, newlines.
-        //todo: add "Finished" to move last processee from processee
-};
+// some terms:
+f32 KEYW_FREQ = 0.1; // arbitrary percentage, for prototyping purposes, for a keyword
+// a keyword: reference to one of "most frequent words"
+i16 WIN_SZ = 6; // arbitrary number, for prototyping purposes
+// window: a window-size tuple, where elements are either keywords or 0-indexed non-keyword that may be repeated throughout the window.
 
 template<class T>
 using Maybe = variant<monostate,T>;
@@ -53,6 +42,14 @@ pair<const Key,Val>& get_or_insert(map<Key, Val>& m, Key k, Val v) {
         return *m.find(k);
     }
 }
+
+enum class TokenTypes {
+    // todo: do I really need to take into account newlines in tokens?
+    SkipWhitespace, // a whitespace that does not belong to Specials. Can be used as initial state
+    AlphaNumeric, // alphanumeric, _
+    Specials // non-alphanumeric, but specials, _, spaces, newlines.
+        //todo: add "Finished" to move last processee from processee
+};
 
 struct TokenizeState {
     TokensFreq tokens;
@@ -248,4 +245,6 @@ int main(int argc, char *argv[]) {
     }
 
     print_state_tokens(state);
+    // * assemble all windows, moving every time one step, where at least one keyword is present
+    // * print them
 }
