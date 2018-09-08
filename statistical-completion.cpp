@@ -8,7 +8,6 @@
 #include <string>
 #include <map>
 #include <set>
-#include <numeric>
 #include <variant>
 #include <vector>
 
@@ -43,6 +42,16 @@ pair<const Key,Val>& get_or_insert(map<Key, Val>& m, Key k, Val v) {
     }
 }
 
+// an "accumulate" without requirement for copy-assignability of accum
+template <class InputIterator, class T, class BinOp>
+T fold(InputIterator first, InputIterator last, T&& accum, BinOp binop) {
+  while (first != last) {
+    accum = binop(std::move(accum), *first);
+    ++first;
+  }
+  return move(accum);
+}
+
 enum class TokenTypes {
     // todo: do I really need to take into account newlines in tokens?
     SkipWhitespace, // a whitespace that does not belong to Specials. Can be used as initial state
@@ -52,6 +61,10 @@ enum class TokenTypes {
 };
 
 struct TokenizeState {
+    TokenizeState(const TokenizeState&)       = delete;
+    TokenizeState(TokenizeState&&)            = default;
+    TokenizeState& operator=(TokenizeState&&) = default;
+
     TokensFreq tokens;
     vector<TokenFreqRef> text;
     string processee;
@@ -68,35 +81,33 @@ struct TokenizeState {
 
 bool is_alphanumeric(char ch) { return isdigit(ch) || isalpha(ch); }
 
-TokenizeState tokenize(TokenizeState state, char ch) {
+TokenizeState tokenize(TokenizeState&& state, char ch) {
     switch (state.type_processed) {
         case TokenTypes::AlphaNumeric: {
             if (is_alphanumeric(ch)) {
                 state.processee.push_back(ch);
-                return state;
+                return move(state);
             } else { // finish a token, start a new one
                 get_or_insert(state.tokens, state.processee, 0u).second += 1u;
                 state.text.push_back(ref(*state.tokens.find(state.processee)));
-                return tokenize(state("",
-                                      isspace(ch)? TokenTypes::SkipWhitespace : TokenTypes::Specials),
+                return tokenize(state("", isspace(ch)? TokenTypes::SkipWhitespace : TokenTypes::Specials),
                                 ch);
             }
         }
         case TokenTypes::Specials: {
             if (!is_alphanumeric(ch)) {
                 state.processee.push_back(ch);
-                return state;
+                return move(state);
             } else { // finish a token, start a new one
                 get_or_insert(state.tokens, state.processee, 0u).second += 1u;
                 state.text.push_back(ref(*state.tokens.find(state.processee)));
-                return tokenize(state("",
-                                      isspace(ch)? TokenTypes::SkipWhitespace : TokenTypes::AlphaNumeric),
+                return tokenize(state("", isspace(ch)? TokenTypes::SkipWhitespace : TokenTypes::AlphaNumeric),
                                 ch);
             }
         }
         case TokenTypes::SkipWhitespace: {
             if (isspace(ch))
-                return state;
+                return move(state);
             else if (is_alphanumeric(ch)) // finish a token, start a new one
                 return tokenize(state(TokenTypes::AlphaNumeric), ch);
             else
@@ -203,18 +214,18 @@ T& get_ref(Maybe<T>& mb_t) {
 
 #define box2args(container) container.begin(), container.end()
 
-void print_state_tokens(TokenizeState state) {
-    vector<TokenFreqRef> sorted = accumulate(box2args(state.tokens),
-                                             vector<TokenFreqRef>{},
-                                             [](vector<TokenFreqRef> accum, TokenFreqRef arg) {
-                                                 for (uint i = accum.size();;--i) {
-                                                     if (!i || accum[i-1].get().second > arg.get().second) {
-                                                         accum.insert(accum.begin()+i, arg);
-                                                         break;
-                                                     }
-                                                 }
-                                                 return accum;
-                                             });
+void print_state_tokens(TokenizeState& state) {
+    vector<TokenFreqRef> sorted = fold(box2args(state.tokens),
+                                       vector<TokenFreqRef>{},
+                                       [](vector<TokenFreqRef> accum, TokenFreqRef arg) {
+                                           for (uint i = accum.size();;--i) {
+                                               if (!i || accum[i-1].get().second > arg.get().second) {
+                                                   accum.insert(accum.begin()+i, arg);
+                                                   break;
+                                               }
+                                           }
+                                           return accum;
+                                       });
     assert(sorted.size() == state.tokens.size());
 
     for (TokenFreqRef x : sorted)
@@ -239,9 +250,9 @@ int main(int argc, char *argv[]) {
             return -1;
 
         vector<char> file_as_vec = get_ref(mb_file).to_vec();
-        state = accumulate(box2args(file_as_vec),
-                           state,
-                           tokenize);
+        state = fold(box2args(file_as_vec),
+                     move(state),
+                     tokenize);
     }
 
     print_state_tokens(state);
