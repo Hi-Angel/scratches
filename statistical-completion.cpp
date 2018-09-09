@@ -232,7 +232,7 @@ void print_state_tokens(TokenizeState& state) {
     assert(sorted.size() == state.tokens.size());
 
     for (TokenFreqRef x : sorted)
-        printf("%u: %s\n", x.get().second, x.get().first.c_str());
+        printf("%u: '%s'\n", x.get().second, x.get().first.c_str());
 }
 
 int main(int argc, char *argv[]) {
