@@ -70,12 +70,15 @@ struct TokenizeState {
     string processee;
     TokenTypes type_processed;
 
-    TokenizeState operator()(string processee_arg, TokenTypes type_processed_arg) {
-        return TokenizeState{tokens, text, processee_arg, type_processed_arg};
+    TokenizeState&& operator()(string processee_arg, TokenTypes type_processed_arg) {
+        processee = processee_arg;
+        type_processed = type_processed_arg;
+        return move(*this);
     }
 
     TokenizeState operator()(TokenTypes type_processed_arg) {
-        return TokenizeState{tokens, text, processee, type_processed_arg};
+        type_processed = type_processed_arg;
+        return move(*this);
     }
 };
 
@@ -255,7 +258,8 @@ int main(int argc, char *argv[]) {
                      tokenize);
     }
 
-    print_state_tokens(state);
+    for(TokenFreqRef t : state.text)
+        printf("%s", t.get().first.c_str());
     // * assemble all windows, moving every time one step, where at least one keyword is present
     // * print them
 }
