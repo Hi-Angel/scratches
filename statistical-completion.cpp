@@ -30,6 +30,7 @@ using Freq         = u32;
 using Token        = string;
 using TokensFreq   = map<Token, Freq>;
 using TokenFreqRef = reference_wrapper<pair<const Token, Freq>>;
+using KeywordRef   = pair<const Token, Freq>;
 
 template<class Key, class Val>
 pair<const Key,Val>& get_or_insert(map<Key, Val>& m, Key k, Val v) {
@@ -208,6 +209,14 @@ struct iterate<char> {
     constexpr
     c_str_iter end() { return c_str_iter((char*)0); }
 };
+
+// In window what's not a keyword is an arg. Args can be repeated, so from left to
+// right args being assigned an index. todo: example.
+struct ArgIndex {
+    uint val; // 0-based
+};
+
+using Window = vector<variant<ArgIndex, KeywordRef>>;
 
 template<class T>
 T& get_ref(Maybe<T>& mb_t) {
