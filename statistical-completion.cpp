@@ -21,7 +21,7 @@ using u32 = uint32_t;
 // some terms:
 f32 KEYW_FREQ = 0.1; // arbitrary percentage, for prototyping purposes, for a keyword
 // a keyword: reference to one of "most frequent words"
-i16 SZ_WIN = 6; // arbitrary number, for prototyping purposes
+i16 WIN_SZ = 6; // arbitrary number, for prototyping purposes
 // window: a window-size tuple, where elements are either keywords or 0-indexed non-keyword that may be repeated throughout the window.
 
 template<class T>
@@ -219,75 +219,6 @@ struct ArgIndex {
 using Window = vector<variant<ArgIndex, KeywordRef>>;
 
 template<class T>
-struct Slice {
-    T* start, *past_end;
-
-    constexpr
-    Slice(T* start, T* past_end): start(start), past_end(past_end) {}
-
-    constexpr
-    Slice(vector<T>& vec): start(&vec[0]), past_end(&vec[vec.size()-1]) {}
-
-    constexpr
-    T* begin() { return start; }
-    constexpr
-    T* end() { return past_end; }
-    constexpr
-    uint size() { return past_end - start; }
-
-    constexpr
-    bool operator!=(Slice<T> rhs) {
-        return start != rhs.start || past_end != rhs.past_end;
-    }
-};
-
-template<class T>
-class Range {
-    Slice<T> sub_slice;
-    const uint sz_subslice, sz_step;
-public:
-    const Slice<T> slice;
-
-    constexpr
-    Range(Slice<T>& slice1, uint sz_subslice, uint sz_step)
-        : sub_slice(slice1), sz_subslice(sz_subslice), sz_step(sz_step), slice(slice1) {}
-
-    constexpr
-    Range(vector<T>& vec, uint sz_subslice, uint sz_step)
-        : sub_slice(vec), sz_subslice(sz_subslice), sz_step(sz_step), slice(vec) {}
-
-    constexpr
-    Slice<T> begin() {
-        sub_slice.start = slice.start;
-        sub_slice.past_end = (sub_slice.start + sz_subslice >= slice.past_end)? slice.past_end : slice.past_end - sz_subslice;
-        return sub_slice;
-    }
-    constexpr
-    Slice<T> end() { return Slice(slice.past_end, slice.past_end); }
-
-    constexpr
-    Slice<T> operator++() {
-        const auto advance_frame = [this](T* edge) {
-                return (edge + sz_step >= slice.past_end)? slice.past_end : edge + sz_step;
-            };
-        sub_slice.start = advance_frame(sub_slice.start);
-        sub_slice.past_end = advance_frame(sub_slice.past_end);
-        return sub_slice;
-    }
-
-    constexpr
-    bool operator!=(Slice<T> arg) {
-        return arg.start != slice.start + sub_slice.start
-            || arg.past_end != slice.past_end + sub_slice.past_end;
-    }
-
-    constexpr
-    Slice<T> operator*() {
-        return sub_slice;
-    }
-};
-
-template<class T>
 T& get_ref(Maybe<T>& mb_t) {
     T& ret = get<1>(mb_t);
     return ret;
@@ -336,10 +267,8 @@ int main(int argc, char *argv[]) {
                      tokenize);
     }
 
-    Range<TokenFreqRef> foo = Range<TokenFreqRef>(state.text, SZ_WIN, 0);
-    for(Slice<TokenFreqRef> s : foo) {
-        // printf("%s", t.get().first.c_str());
-    }
+    for(TokenFreqRef t : state.text)
+        printf("%s", t.get().first.c_str());
     // * assemble all windows, moving every time one step, where at least one keyword is present
     // * print them
 }
