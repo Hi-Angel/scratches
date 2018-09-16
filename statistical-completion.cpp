@@ -21,7 +21,7 @@ using u32 = uint32_t;
 // some terms:
 f32 KEYW_FREQ = 0.1; // arbitrary percentage, for prototyping purposes, for a keyword
 // a keyword: reference to one of "most frequent words"
-i16 WIN_SZ = 6; // arbitrary number, for prototyping purposes
+i16 SZ_WIN = 6; // arbitrary number, for prototyping purposes
 // window: a window-size tuple, where elements are either keywords or 0-indexed non-keyword that may be repeated throughout the window.
 
 template<class T>
@@ -30,7 +30,7 @@ using Freq         = u32;
 using Token        = string;
 using TokensFreq   = map<Token, Freq>;
 using TokenFreqRef = reference_wrapper<pair<const Token, Freq>>;
-using KeywordRef   = pair<const Token, Freq>;
+using KeywordRef   = TokenFreqRef;
 
 template<class Key, class Val>
 pair<const Key,Val>& get_or_insert(map<Key, Val>& m, Key k, Val v) {
@@ -210,13 +210,69 @@ struct iterate<char> {
     c_str_iter end() { return c_str_iter((char*)0); }
 };
 
+template<class T>
+struct Slice {
+    T* start, *past_end;
+
+    constexpr
+    Slice(T* start, T* past_end): start(start), past_end(past_end) {}
+
+    constexpr
+    Slice(vector<T>& vec): start(&vec[0]), past_end(&vec[vec.size()-1]) {}
+
+    constexpr
+    T* begin() const { return start; }
+    constexpr
+    T* end() const { return past_end; }
+    constexpr
+    uint size() { return past_end - start; }
+
+    constexpr
+    bool operator!=(Slice<T> rhs) const {
+        return start != rhs.start || past_end != rhs.past_end;
+    }
+
+    constexpr
+    T& operator[](uint i) const {
+        return start[i];
+    }
+};
+
+template<class T, class Accum>
+Accum foreach_frame(function<Accum(Accum,Slice<T>)> f,
+                    const Slice<T>& range, Accum&& accum,
+                    const uint sz_frame, const uint sz_step) {
+    Slice<T> frame(range.start,
+                   (range.start + sz_frame >= range.past_end)? range.past_end : range.past_end - sz_frame);
+    do {
+        accum = f(move(accum), frame);
+        const auto advance_frame = [sz_step, &range](T*& edge) {
+                edge = (edge + sz_step >= range.past_end)? range.past_end : edge + sz_step;
+            };
+        advance_frame(frame.start);
+        advance_frame(frame.past_end);
+    } while(frame.start < range.past_end);
+    return move(accum);
+}
+
 // In window what's not a keyword is an arg. Args can be repeated, so from left to
 // right args being assigned an index. todo: example.
 struct ArgIndex {
     uint val; // 0-based
 };
 
-using Window = vector<variant<ArgIndex, KeywordRef>>;
+struct Window {
+    vector<variant<ArgIndex, KeywordRef>> store;
+    uint n_args; // number of "ArgIndex"s
+
+    void push(ArgIndex i) {
+        store.push_back(i);
+        if (i.val+1 > n_args) // new argument
+            n_args++;
+    }
+    void push(KeywordRef key_ref) {store.push_back(key_ref);}
+};
+
 
 template<class T>
 T& get_ref(Maybe<T>& mb_t) {
@@ -271,4 +327,23 @@ int main(int argc, char *argv[]) {
         printf("%s", t.get().first.c_str());
     // * assemble all windows, moving every time one step, where at least one keyword is present
     // * print them
+    function<vector<Window>&&(vector<Window>&& windows, const Slice<TokenFreqRef>)> collect_windows = [](vector<Window>&& windows, const Slice<TokenFreqRef> s) {
+            windows.push_back(Window());
+            Window& window = windows.back();
+
+            for(TokenFreqRef t : s) {
+                if (t.get().second >= KEYW_FREQ) {
+                    window.push(t);
+                } else {
+                    // if word in window: use its index, otherwise use n_args+1
+                    for (uint i = 0; i < window.store.size()-1; ++i)
+                        if (t.get().first == s[i].get().first)
+                            window.push(ArgIndex{get<ArgIndex>(window.store[i])});
+                        else
+                            window.push(ArgIndex{window.n_args});
+                }
+            }
+            return move(windows);
+        };
+    vector<Window> windows = foreach_frame(collect_windows, Slice(state.text), {}, SZ_WIN, 1);
 }
