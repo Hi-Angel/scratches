@@ -335,7 +335,7 @@ int main(int argc, char *argv[]) {
                      tokenize);
     }
 
-    function<vector<Window>(vector<Window> windows, const Slice<TokenFreqRef>)> collect_windows = [](vector<Window> windows, const Slice<TokenFreqRef> s) {
+    function<vector<Window>(vector<Window>, const Slice<TokenFreqRef>)> collect_windows = [](vector<Window> windows, const Slice<TokenFreqRef> s) {
             windows.push_back(Window());
             Window& window = windows.back();
 
