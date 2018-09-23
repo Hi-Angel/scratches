@@ -323,11 +323,7 @@ int main(int argc, char *argv[]) {
                      tokenize);
     }
 
-    for(TokenFreqRef t : state.text)
-        printf("%s", t.get().first.c_str());
-    // * assemble all windows, moving every time one step, where at least one keyword is present
-    // * print them
-    function<vector<Window>&&(vector<Window>&& windows, const Slice<TokenFreqRef>)> collect_windows = [](vector<Window>&& windows, const Slice<TokenFreqRef> s) {
+    function<vector<Window>(vector<Window> windows, const Slice<TokenFreqRef>)> collect_windows = [](vector<Window> windows, const Slice<TokenFreqRef> s) {
             windows.push_back(Window());
             Window& window = windows.back();
 
@@ -343,7 +339,7 @@ int main(int argc, char *argv[]) {
                             window.push(ArgIndex{window.n_args});
                 }
             }
-            return move(windows);
+            return windows;
         };
     vector<Window> windows = foreach_frame(collect_windows, Slice(state.text), {}, SZ_WIN, 1);
 }
