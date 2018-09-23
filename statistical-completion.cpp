@@ -218,7 +218,7 @@ struct Slice {
     Slice(T* start, T* past_end): start(start), past_end(past_end) {}
 
     constexpr
-    Slice(vector<T>& vec): start(&vec[0]), past_end(&vec[vec.size()-1]) {}
+    Slice(vector<T>& vec): start(&vec[0]), past_end(&vec[vec.size()]) {}
 
     constexpr
     T* begin() const { return start; }
