@@ -332,11 +332,17 @@ int main(int argc, char *argv[]) {
                     window.push(t);
                 } else {
                     // if word in window: use its index, otherwise use n_args+1
-                    for (uint i = 0; i < window.store.size()-1; ++i)
-                        if (t.get().first == s[i].get().first)
+                    uint i = 0;
+                    for (; i < window.store.size(); ++i)
+                        if (t.get().first == s[i].get().first) {
                             window.push(ArgIndex{get<ArgIndex>(window.store[i])});
-                        else
-                            window.push(ArgIndex{window.n_args});
+                            break;
+                        }
+
+                    if (i == window.store.size()) {
+                        window.push(ArgIndex{window.n_args});
+                        break;
+                    }
                 }
             }
             return windows;
