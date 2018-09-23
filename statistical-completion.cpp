@@ -241,13 +241,13 @@ struct Slice {
 template<class T, class Accum>
 Accum foreach_frame(function<Accum(Accum,Slice<T>)> f,
                     const Slice<T>& range, Accum&& accum,
-                    const uint sz_frame, const uint sz_step) {
+                    const uint sz_frame) {
     Slice<T> frame(range.start,
-                   (range.start + sz_frame >= range.past_end)? range.past_end : range.past_end - sz_frame);
+                   (range.start + sz_frame >= range.past_end)? range.past_end : range.start + sz_frame);
     do {
         accum = f(move(accum), frame);
-        const auto advance_frame = [sz_step, &range](T*& edge) {
-                edge = (edge + sz_step >= range.past_end)? range.past_end : edge + sz_step;
+        const auto advance_frame = [&range](T*& edge) {
+                edge = (edge + 1 >= range.past_end)? range.past_end : edge + 1;
             };
         advance_frame(frame.start);
         advance_frame(frame.past_end);
@@ -335,12 +335,13 @@ int main(int argc, char *argv[]) {
                      tokenize);
     }
 
-    function<vector<Window>(vector<Window>, const Slice<TokenFreqRef>)> collect_windows = [](vector<Window> windows, const Slice<TokenFreqRef> s) {
+    const uint min_keyword_freq = state.text.size() * KEYW_FREQ;
+    function<vector<Window>(vector<Window>, const Slice<TokenFreqRef>)> collect_windows = [&](vector<Window> windows, const Slice<TokenFreqRef> s) {
             windows.push_back(Window());
             Window& window = windows.back();
 
             for(TokenFreqRef t : s) {
-                if (t.get().second >= KEYW_FREQ) {
+                if (t.get().second >= min_keyword_freq) {
                     window.push(t);
                 } else {
                     // if word in window: use its index, otherwise use n_args+1
@@ -360,7 +361,7 @@ int main(int argc, char *argv[]) {
             }
             return windows;
         };
-    vector<Window> windows = foreach_frame(collect_windows, Slice(state.text), {}, SZ_WIN, 1);
+    vector<Window> windows = foreach_frame(collect_windows, Slice(state.text), {}, SZ_WIN);
 
     for (Window w : windows)
         printf("%s\n", w.show().c_str());
