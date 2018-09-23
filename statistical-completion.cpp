@@ -271,6 +271,18 @@ struct Window {
             n_args++;
     }
     void push(KeywordRef key_ref) {store.push_back(key_ref);}
+
+    string show() {
+        string ret;
+        for (variant<ArgIndex, KeywordRef> elem : store) {
+            ret += (holds_alternative<ArgIndex>(elem))
+                ? "arg" + to_string(get<ArgIndex>(elem).val)
+                : get<KeywordRef>(elem).get().first
+                + ", ";
+        }
+
+        return ret;
+    }
 };
 
 
@@ -333,11 +345,12 @@ int main(int argc, char *argv[]) {
                 } else {
                     // if word in window: use its index, otherwise use n_args+1
                     uint i = 0;
-                    for (; i < window.store.size(); ++i)
+                    for (; i < window.store.size(); ++i) {
                         if (t.get().first == s[i].get().first) {
                             window.push(ArgIndex{get<ArgIndex>(window.store[i])});
                             break;
                         }
+                    }
 
                     if (i == window.store.size()) {
                         window.push(ArgIndex{window.n_args});
@@ -348,4 +361,7 @@ int main(int argc, char *argv[]) {
             return windows;
         };
     vector<Window> windows = foreach_frame(collect_windows, Slice(state.text), {}, SZ_WIN, 1);
+
+    for (Window w : windows)
+        printf("%s\n", w.show().c_str());
 }
