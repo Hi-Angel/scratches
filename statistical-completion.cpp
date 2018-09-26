@@ -225,7 +225,7 @@ struct Slice {
     constexpr
     T* end() const { return past_end; }
     constexpr
-    uint size() { return past_end - start; }
+    uint size() const { return past_end - start; }
 
     constexpr
     bool operator!=(Slice<T> rhs) const {
@@ -275,10 +275,10 @@ struct Window {
     string show() {
         string ret;
         for (variant<ArgIndex, KeywordRef> elem : store) {
-            ret += (holds_alternative<ArgIndex>(elem))
-                ? "arg" + to_string(get<ArgIndex>(elem).val)
-                : get<KeywordRef>(elem).get().first
-                + ", ";
+            ret += ((holds_alternative<ArgIndex>(elem))
+                    ? "arg" + to_string(get<ArgIndex>(elem).val)
+                    : get<KeywordRef>(elem).get().first)
+                + " ";
         }
 
         return ret;
@@ -314,7 +314,7 @@ void print_state_tokens(TokenizeState& state) {
 
 int main(int argc, char *argv[]) {
     if (argc <= 1) {
-        puts("Please, enter filenames to read form");
+        puts("Please, enter filenames to read from");
         return -1;
     }
 
@@ -353,10 +353,8 @@ int main(int argc, char *argv[]) {
                         }
                     }
 
-                    if (i == window.store.size()) {
+                    if (i == window.store.size())
                         window.push(ArgIndex{window.n_args});
-                        break;
-                    }
                 }
             }
             return windows;
