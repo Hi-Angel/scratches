@@ -93,6 +93,7 @@ fn main() {
     for &(key, freq) in sorted.iter() {
         println!("{:04}: {}", (*freq) as f32 / (sorted.len()) as f32, key);
     }
+    // todo: rust API is not yet ready for that kind of task https://stackoverflow.com/questions/51459146/how-do-i-create-a-vec-of-entries-from-a-hashmap
 }
 
 // getWindowNonKeywords :: Int -> Slice -> KeywordsPattern
