@@ -1,0 +1,45 @@
+<buildfile> ::= <rule>* <build>*
+
+<rule> ::= 'rule' <identifier> '\n'
+               [ 'command =' <string> '\n' ]
+               [ 'description =' <string> '\n' ]
+               [ 'depfile =' <string> '\n' ]
+               [ 'deps =' <string> '\n' ]
+               [ 'generator' '\n' ]
+               [ 'restat' '\n' ]
+               [ 'rspfile =' <string> '\n' ]
+               [ 'rspfile_content =' <string> '\n' ]
+
+<build> ::= 'build' <path> ':' <path> <path>*
+               [ '|' <string> ]
+               [ '||' <string> ]
+               [ '&&' <string> ]
+               [ 'description =' <string> '\n' ]
+               [ 'depfile =' <string> '\n' ]
+               [ 'deps =' <string> '\n' ]
+               [ 'generator' '\n' ]
+               [ 'restat' '\n' ]
+               [ 'rspfile =' <string> '\n' ]
+               [ 'rspfile_content =' <string> '\n' ]
+
+<path> ::= <identifier> | <string>
+
+<string> ::= '"' <characters> '"'
+                  | "'" <characters> "'"
+
+<identifier> ::= <alpha> (<alpha> | <digit> | '_' | '-')*
+
+<characters> ::= <character>*
+
+<character> ::= <letter> | <digit> | <symbol>
+
+<letter> ::= <upper> | <lower>
+
+<upper> ::= 'A' ... 'Z'
+
+<lower> ::= 'a' ... 'z'
+
+<digit> ::= '0' ... '9'
+
+<symbol> ::= any printable ASCII character except whitespace and quotes
+

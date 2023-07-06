@@ -1,0 +1,9 @@
+build
+
+
+buzz
+x = y
+
+rule
+    foo = bar
+    buzz = x y
